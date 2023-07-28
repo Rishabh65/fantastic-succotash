@@ -1,0 +1,115 @@
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Iterator;
+import java.util.Scanner;
+
+// Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
+// then press Enter. You can now see whitespace characters in your code.
+public class Main {
+
+
+   /* static {
+        System.setProperty("javax.net.debug", "all");
+
+        System.setProperty("https.protocols", "TLSv1.2");
+    }*/
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Welcome to London Weather Report App!");
+        System.out.println("Please enter date");
+        String date = sc.nextLine();
+        System.out.println("Press 1 to get Weather Details");
+        System.out.println("Press 2 to get Wing Speed");
+        System.out.println("Press 3 to get Pressure Details");
+        System.out.println("Press 0 to Exist");
+
+        int key = sc.nextInt();
+        if(key!=0){
+
+            getWeatherApiData(key,date);
+        }
+
+    }
+
+    public static void getWeatherApiData(int key,String date){
+        try{
+            URL url = new URL("https://samples.openweathermap.org/data/2.5/forecast/hourly?q=London,us&appid=b6907d289e10d714a6e88b30761fae22");
+
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.connect();
+
+            //Getting the response code
+            int responsecode = conn.getResponseCode();
+
+            if (responsecode != 200) {
+                throw new RuntimeException("HttpResponseCode: " + responsecode);
+            } else {
+                String inline = "";
+                Scanner scanner = new Scanner(url.openStream());
+
+                // Write all the JSON data into a string using a scanner
+                while (scanner.hasNext()) {
+                    inline += scanner.nextLine();
+                }
+
+               // System.out.println("inline- "+inline);
+
+                // Close the scanner
+                scanner.close();
+
+                //Using the JSON simple library parse the string into a json object
+                JSONParser parse = new JSONParser();
+                JSONObject data_obj = (JSONObject) parse.parse(inline);
+
+                JSONArray list = (JSONArray) data_obj.get("list");
+               // System.out.println("list: " + list);
+
+                Iterator itr = list.iterator();
+
+                while (itr.hasNext()) {
+                    Object slide = itr.next();
+                    JSONObject jsonObject2 = (JSONObject) slide;
+                    String dt = (String) jsonObject2.get("dt_txt");
+                   // System.out.println("dt- "+dt);
+
+                    if(dt.contains(date)){
+                         if(key==1){
+                             JSONObject jsonObject3 = (JSONObject) slide;
+                             JSONObject main = (JSONObject) jsonObject2.get("main");
+
+                             Double temp = (Double) main.get("temp");
+                             System.out.println("temperature- "+temp);
+                             break;
+                         }else if(key==2){
+                             JSONObject jsonObject3 = (JSONObject) slide;
+                             JSONObject wind = (JSONObject) jsonObject2.get("wind");
+
+                             Double speed = (Double) wind.get("speed");
+                             System.out.println("wind speed- "+speed);
+                             break;
+                         }else if(key==3){
+                             JSONObject jsonObject3 = (JSONObject) slide;
+                             JSONObject main = (JSONObject) jsonObject2.get("main");
+
+                             Double pressure = (Double) main.get("pressure");
+                             System.out.println("pressure- "+pressure);
+                             break;
+                         }
+                    }
+                }
+            }
+
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+
+}
